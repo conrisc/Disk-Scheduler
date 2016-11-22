@@ -2,7 +2,8 @@
 
 ## Treść zadania
 
-######Disk scheduler
+######Disk scheduler 
+*source: https://people.cs.umass.edu/~mcorner/courses/691J/project1.text*
 
 In this part, you will write a concurrent program to issue and service disk requests.  We will provide a working thread library (thread.o) for you to use while testing your disk scheduler. 
 
