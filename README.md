@@ -47,7 +47,7 @@ disk.in0   disk.in1   disk.in2   disk.in3   disk.in4
 785        350        567        230        11
 ```
 
-Here is one of several possible correct outputs from running the disk scheduler with the following command:
+Here is one of several possible correct outputs from running the disk scheduler with the following command:  
 *disk 3 disk.in0 disk.in1 disk.in2 disk.in3 disk.in4*
 
 (The final line of the output is produced by the thread library, not the disk scheduler.)
