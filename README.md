@@ -2,7 +2,7 @@
 
 ## Treść zadania
 
-######Disk scheduler 
+###Disk scheduler 
 *source: https://people.cs.umass.edu/~mcorner/courses/691J/project1.text*
 
 In this part, you will write a concurrent program to issue and service disk requests.  We will provide a working thread library (thread.o) for you to use while testing your disk scheduler. 
@@ -15,13 +15,13 @@ Requests in the disk queue are NOT serviced in FIFO order.  Instead, the service
 
 Keep the disk queue as full as possible to minimize average seek distance. That is, your service thread should only handle a request when the disk queue has the largest possible number of requests.  This gives the service thread the largest number of requests to choose from.  Note that the "largest number of requests" varies depending on how many request threads are still active. When at least max_disk_queue requester threads are alive, the largest possible number of requests in the queue is max_disk_queue.  When fewer than max_disk_queue requester threads are alive, the largest number of requests in the queue is equal to the number of living requester threads.  You will probably want to maintain the number of living requester threads as shared state.
 
-**1 Input**
+**1. Input**
 
 Your program will be called with several command-line arguments.  The first argument specifies the maximum number of requests that the disk queue can hold.  The rest of the arguments specify a list of input files (one input file per requester).  I.e. the input file for requester r is argv[r+2], where 0 <= r < (number of requesters).  The number of threads making disk requests should be deduced from the number of input files specified.
 
 The input file for each requester contains that requester's series of requests. Each line of the input file specifies the track number of the request (0 to 999).  You may assume that input files are formatted correctly.  Open each input file read-only (use ifstream rather than fstream).
 
-**2 Output**
+**2. Output**
 
 After issuing a request, a requester thread should call (note the space characters in the strings):  
 *cout << "requester " << requester << " track " << track << endl;*  
@@ -37,7 +37,7 @@ Your program should not generate any other output.
 
 Note that the console is shared between the different threads.  Hence the couts in your program must be protected by a monitor lock to prevent interleaving output from multiple threads.
 
-**3 Sample input/output**
+**3. Sample input/output**
 
 Here is an example set of input files (disk.in0 - disk.in4).
 ```
@@ -77,7 +77,7 @@ Thread library exiting.
 -------------------------------------------------------------------------------
 ```
 
-**4 Tips**
+**4. Tips**
 
 We will provide a working thread library (thread.o) for you to use while testing your disk scheduler.
 
