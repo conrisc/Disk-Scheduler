@@ -2,95 +2,55 @@
 
 ## Treść zadania
 
- ###Disk scheduler
+######Disk scheduler
 
-In this part, you will write a concurrent program to issue and service disk
-requests.  We will provide a working thread library (thread.o) for you to use
-while testing your disk scheduler. 
+In this part, you will write a concurrent program to issue and service disk requests.  We will provide a working thread library (thread.o) for you to use while testing your disk scheduler. 
 
-The disk scheduler in an operating system gets and schedules disk I/Os for
-multiple threads.  Threads issue disk requests by queueing them at the disk
-scheduler.  The disk scheduler queue can contain at most a specified number
-of requests (max_disk_queue); threads must wait if the queue is full.
+The disk scheduler in an operating system gets and schedules disk I/Os for multiple threads.  Threads issue disk requests by queueing them at the disk scheduler.  The disk scheduler queue can contain at most a specified number of requests (max_disk_queue); threads must wait if the queue is full.
 
-Your program should start by creating a specified number of requester threads
-to issue disk requests and one thread to service disk requests.  Each
-requester thread should issue a series of requests for disk tracks (specified
-in its input file).  Each request is synchronous; a requester thread must wait
-until the servicing thread finishes handling its last request before issuing
-its next request.  A requester thread finishes after all the requests in its
-input file have been serviced.
+Your program should start by creating a specified number of requester threads to issue disk requests and one thread to service disk requests.  Each requester thread should issue a series of requests for disk tracks (specified in its input file).  Each request is synchronous; a requester thread must wait until the servicing thread finishes handling its last request before issuing its next request.  A requester thread finishes after all the requests in its input file have been serviced.
 
-Requests in the disk queue are NOT serviced in FIFO order.  Instead, the
-service thread handles disk requests in SSTF order (shortest seek time first).
-That is, the next request it services is the request that is closest to its
-current track.  The disk is initialized with its current track as 0.
+Requests in the disk queue are NOT serviced in FIFO order.  Instead, the service thread handles disk requests in SSTF order (shortest seek time first). That is, the next request it services is the request that is closest to its current track.  The disk is initialized with its current track as 0.
 
-Keep the disk queue as full as possible to minimize average seek distance.
-That is, your service thread should only handle a request when the disk queue
-has the largest possible number of requests.  This gives the service thread
-the largest number of requests to choose from.  Note that the "largest number
-of requests" varies depending on how many request threads are still active.
-When at least max_disk_queue requester threads are alive, the largest possible
-number of requests in the queue is max_disk_queue.  When fewer than
-max_disk_queue requester threads are alive, the largest number of requests in
-the queue is equal to the number of living requester threads.  You will
-probably want to maintain the number of living requester threads as shared
-state.
+Keep the disk queue as full as possible to minimize average seek distance. That is, your service thread should only handle a request when the disk queue has the largest possible number of requests.  This gives the service thread the largest number of requests to choose from.  Note that the "largest number of requests" varies depending on how many request threads are still active. When at least max_disk_queue requester threads are alive, the largest possible number of requests in the queue is max_disk_queue.  When fewer than max_disk_queue requester threads are alive, the largest number of requests in the queue is equal to the number of living requester threads.  You will probably want to maintain the number of living requester threads as shared state.
 
 **1 Input**
 
-Your program will be called with several command-line arguments.  The first
-argument specifies the maximum number of requests that the disk queue can
-hold.  The rest of the arguments specify a list of input files (one input file
-per requester).  I.e. the input file for requester r is argv[r+2], where
-0 <= r < (number of requesters).  The number of threads making disk requests
-should be deduced from the number of input files specified.
+Your program will be called with several command-line arguments.  The first argument specifies the maximum number of requests that the disk queue can hold.  The rest of the arguments specify a list of input files (one input file per requester).  I.e. the input file for requester r is argv[r+2], where 0 <= r < (number of requesters).  The number of threads making disk requests should be deduced from the number of input files specified.
 
-The input file for each requester contains that requester's series of requests.
-Each line of the input file specifies the track number of the request (0 to
-999).  You may assume that input files are formatted correctly.  Open each
-input file read-only (use ifstream rather than fstream).
+The input file for each requester contains that requester's series of requests. Each line of the input file specifies the track number of the request (0 to 999).  You may assume that input files are formatted correctly.  Open each input file read-only (use ifstream rather than fstream).
 
 **2 Output**
 
-After issuing a request, a requester thread should call (note the space
-characters in the strings):
-    cout << "requester " << requester << " track " << track << endl;
+After issuing a request, a requester thread should call (note the space characters in the strings):  
+*cout << "requester " << requester << " track " << track << endl;*  
 
-A request is available to be serviced when the requester thread prints this
-line.
+A request is available to be serviced when the requester thread prints this line.
 
-After servicing a request, the service thread should make the following call
-(note the space characters in the strings):
-    cout << "service requester " << requester << " track " << track << endl;
+After servicing a request, the service thread should make the following call (note the space characters in the strings):  
+*cout << "service requester " << requester << " track " << track << endl;*  
 
-A request is considered to be completely handled when the service thread
-prints this line.
+A request is considered to be completely handled when the service thread prints this line.
 
 Your program should not generate any other output.
 
-Note that the console is shared between the different threads.  Hence the couts
-in your program must be protected by a monitor lock to prevent interleaving
-output from multiple threads.
+Note that the console is shared between the different threads.  Hence the couts in your program must be protected by a monitor lock to prevent interleaving output from multiple threads.
 
 **3 Sample input/output**
 
 Here is an example set of input files (disk.in0 - disk.in4).
-
-
+```
 disk.in0   disk.in1   disk.in2   disk.in3   disk.in4
 --------   --------   --------   --------   --------
 53         914        827        302        631
 785        350        567        230        11
+```
 
-
-Here is one of several possible correct outputs from running the disk
-scheduler with the following command:
+Here is one of several possible correct outputs from running the disk scheduler with the following command:
     disk 3 disk.in0 disk.in1 disk.in2 disk.in3 disk.in4
 
-(The final line of the output is produced by the thread library, not the
-disk scheduler.)
+(The final line of the output is produced by the thread library, not the disk scheduler.)
+```
 -------------------------------------------------------------------------------
 requester 0 track 53
 requester 1 track 914
@@ -114,11 +74,11 @@ service requester 3 track 230
 service requester 4 track 11
 Thread library exiting.
 -------------------------------------------------------------------------------
+```
 
 **4 Tips**
 
-We will provide a working thread library (thread.o) for you to use while
-testing your disk scheduler.
+We will provide a working thread library (thread.o) for you to use while testing your disk scheduler.
 
 ## Wytyczne techniczne
 
