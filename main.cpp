@@ -12,58 +12,15 @@ void *requester(void *file) {
   sem_wait(&coutMut);
   cout<<*inputFile<<endl;
   sem_post(&coutMut);
-  // while (true) {
-  //   #ifdef SLEEP_ENABLED
-  //     randsleep();
-  //   #endif
-  //   sem_wait(&gnomes);
-  //   if (firstPartNotCreated) {
-  //     createdToy = gID;
-  //     firstPartNotCreated=false;
-  //     cout << "gnome" << gID+1 << "(): Zacząłem produkcję zabawki.\n";
-  //     blockedGnome=gID;
-  //     sem_post(&gnomes);
-  //     sem_wait(&gnomeSem[gID]);
-  //   }
-  //   else {
-  //     createdToy+=gID;
-  //     sem_wait(&toyMut);
-  //     toy[createdToy-1]++;
-  //     cout << "gnome" << gID+1 << "(): Skończyłem produkcję zabawki (" << createdToy << ").\n" << buffor();
-  //     bool enoughToys = (toy[0] >= 3 && toy[1] >= 3 && toy[2] >= 3);
-  //
-  //     if (enoughToys && santaSleeping) {
-  //       cout << "gnome" << gID+1 << "(): Budzę Mikołaja.\n";
-  //       santaSleeping = false;
-  //       sem_post(&santaSem);
-  //     }
-  //
-  //     sem_post(&toyMut);
-  //
-  //     firstPartNotCreated = true;
-  //     sem_post(&gnomeSem[blockedGnome]);
-  //     sem_post(&gnomes);
-  //   }
+  // while (file) {
+
   // }
   pthread_exit(NULL);
 }
 
 void *service(void *sth) {
-  // while (true) {
-  //   sem_wait(&santaSem);
-  //   sem_wait(&toyMut);
-  //   cout << "santa(): Zabawki się uzbierały, wstaję do pracy...\n";
-  //
-  //   #ifdef SLEEP_ENABLED
-  //     sleep(3);
-  //   #endif
-  //
-  //   for (int i = 0; i < 3; i++)
-  //     toy[i] -= 3;
-  //
-  //   cout << "santa(): Zabawki wysłane. Czas iść spać...\n" << buffor();
-  //   santaSleeping = true;
-  //   sem_post(&toyMut);
+  // while (requests) {
+
   // }
   pthread_exit(NULL);
 }
