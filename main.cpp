@@ -2,34 +2,52 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include <string>
+#include <stdlib.h>
+#include <fstream>
 
 using namespace std;
 
-sem_t coutMut;
+int max_disk_queue;
+sem_t coutMut,disk_queue;
 
-void *requester(void *file) {
-  std::string* inputFile= reinterpret_cast<std::string*>(file);
-  sem_wait(&coutMut);
-  cout<<*inputFile<<endl;
-  sem_post(&coutMut);
-  // while (file) {
-
-  // }
+void *requester(void *fileName) {
+  std::string* inputFile= reinterpret_cast<std::string*>(fileName);
+  std::ifstream file;
+  file.open( (*inputFile).c_str() );
+  string reqLine;
+  while (getline( file, reqLine )) {
+    sem_wait(&disk_queue);
+    sem_wait(&coutMut);
+    cout << "requester " << *inputFile << " track " << reqLine << endl;
+    sem_post(&coutMut);
+  }
+  file.close();
   pthread_exit(NULL);
 }
 
 void *service(void *sth) {
-  // while (requests) {
-
-  // }
+  int free_slots_in_queue;
+  while (true) {
+    sem_getvalue(&disk_queue,&free_slots_in_queue);
+    if (free_slots_in_queue<max_disk_queue) {
+      sem_post(&disk_queue);
+      sem_wait(&coutMut);
+      cout << "service requester " << "SOME_REQUESTER" << " track " << "SOME_TRACK" << endl;
+      sem_post(&coutMut);
+    }
+  }
   pthread_exit(NULL);
 }
 
 int main( int argc, char * argv[] ) {
 
-  sem_init(&coutMut, 0, 1);
+  if (argc<3) return 1; 
 
+  max_disk_queue = atoi(argv[1]);
   pthread_t threads[argc-1];
+
+  sem_init(&coutMut, 0, 1);
+  sem_init(&disk_queue,0,max_disk_queue);
 
   pthread_create(&threads[0], NULL, service, NULL);
 
