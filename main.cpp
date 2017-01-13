@@ -8,12 +8,12 @@
 
 using namespace std;
 
-int max_disk_queue;
+int max_disk_queue, active;
 sem_t coutMut, disk_queue, serv_block, reqMut;
 list<int> requests;
 
 void *requester(void *fileName) {
-  std::string* inputFile= reinterpret_cast<std::string*>(fileName);
+  std::string* inputFile = reinterpret_cast<std::string*>(fileName);
   std::ifstream file;
   file.open( (*inputFile).c_str() );
   string reqLine;
@@ -24,18 +24,21 @@ void *requester(void *fileName) {
     sem_wait(&coutMut);
     cout << "requester " << *inputFile << " track " << reqLine << endl;
     sem_post(&coutMut);
-    sem_post(&reqMut);
     sem_getvalue(&disk_queue,&free_slots_in_queue);
-    if (free_slots_in_queue==0)
+    if (free_slots_in_queue == 0 || max_disk_queue - active == free_slots_in_queue) {
       sem_post(&serv_block);
+    }
+    sem_post(&reqMut);
   }
+  active--;
+  if (active==0) sem_post(&serv_block);
   file.close();
   pthread_exit(NULL);
 }
 
 void *service(void *sth) {
   while (true) {
-    sem_wait(&serv_block);
+    if (active!=0) sem_wait(&serv_block);
     sem_wait(&coutMut);
     sem_post(&disk_queue);
     cout << "service requester " << "SOME_REQUESTER" << " track " << "SOME_TRACK" << endl;
@@ -49,12 +52,14 @@ int main( int argc, char * argv[] ) {
   if (argc<3) return 1;
 
   max_disk_queue = atoi(argv[1]);
+  active = argc-2;
   pthread_t threads[argc-1];
 
   sem_init(&coutMut, 0, 1);
   sem_init(&reqMut, 0, 1);
-  sem_init(&disk_queue,0,max_disk_queue);
   sem_init(&serv_block,0,0);
+  sem_init(&disk_queue,0,max_disk_queue);
+
 
   pthread_create(&threads[0], NULL, service, NULL);
 
