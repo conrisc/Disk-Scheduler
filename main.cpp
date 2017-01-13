@@ -19,6 +19,7 @@ void *requester(void *fileName) {
   string reqLine;
   int free_slots_in_queue;
   while (getline( file, reqLine )) {
+    // sem_wait(&req[id]);
     sem_wait(&reqMut);
     sem_wait(&disk_queue);
     sem_wait(&coutMut);
@@ -40,6 +41,7 @@ void *service(void *sth) {
   while (true) {
     if (active!=0) sem_wait(&serv_block);
     sem_wait(&coutMut);
+    // sem_post(&req[id]);
     sem_post(&disk_queue);
     cout << "service requester " << "SOME_REQUESTER" << " track " << "SOME_TRACK" << endl;
     sem_post(&coutMut);
@@ -59,7 +61,9 @@ int main( int argc, char * argv[] ) {
   sem_init(&reqMut, 0, 1);
   sem_init(&serv_block,0,0);
   sem_init(&disk_queue,0,max_disk_queue);
-
+  for (int i=0;i<active;i++) {
+    // sem_init(&req[i],0,1);
+  }
 
   pthread_create(&threads[0], NULL, service, NULL);
 
