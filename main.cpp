@@ -9,7 +9,7 @@
 using namespace std;
 
 int max_disk_queue;
-sem_t coutMut, disk_queue, serv_block;
+sem_t coutMut, disk_queue, serv_block, reqMut;
 list<int> requests;
 
 void *requester(void *fileName) {
@@ -19,10 +19,12 @@ void *requester(void *fileName) {
   string reqLine;
   int free_slots_in_queue;
   while (getline( file, reqLine )) {
+    sem_wait(&reqMut);
     sem_wait(&disk_queue);
     sem_wait(&coutMut);
     cout << "requester " << *inputFile << " track " << reqLine << endl;
     sem_post(&coutMut);
+    sem_post(&reqMut);
     sem_getvalue(&disk_queue,&free_slots_in_queue);
     if (free_slots_in_queue==0)
       sem_post(&serv_block);
@@ -50,6 +52,7 @@ int main( int argc, char * argv[] ) {
   pthread_t threads[argc-1];
 
   sem_init(&coutMut, 0, 1);
+  sem_init(&reqMut, 0, 1);
   sem_init(&disk_queue,0,max_disk_queue);
   sem_init(&serv_block,0,0);
 
