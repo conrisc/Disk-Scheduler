@@ -5,7 +5,7 @@
 ###Disk scheduler 
 *source: https://people.cs.umass.edu/~mcorner/courses/691J/project1.text*
 
-In this part, you will write a concurrent program to issue and service disk requests.  We will provide a working thread library (thread.o) for you to use while testing your disk scheduler. 
+A concurrent program to issue and service disk requests.
 
 The disk scheduler in an operating system gets and schedules disk I/Os for multiple threads.  Threads issue disk requests by queueing them at the disk scheduler.  The disk scheduler queue can contain at most a specified number of requests (max_disk_queue); threads must wait if the queue is full.
 
@@ -76,10 +76,6 @@ service requester 4 track 11
 Thread library exiting.
 -------------------------------------------------------------------------------
 ```
-
-**4. Tips**
-
-We will provide a working thread library (thread.o) for you to use while testing your disk scheduler.
 
 ## Wytyczne techniczne
 
