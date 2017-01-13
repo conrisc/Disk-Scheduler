@@ -4,50 +4,54 @@
 #include <string>
 #include <stdlib.h>
 #include <fstream>
+#include <list>
 
 using namespace std;
 
 int max_disk_queue;
-sem_t coutMut,disk_queue;
+sem_t coutMut, disk_queue, serv_block;
+list<int> requests;
 
 void *requester(void *fileName) {
   std::string* inputFile= reinterpret_cast<std::string*>(fileName);
   std::ifstream file;
   file.open( (*inputFile).c_str() );
   string reqLine;
+  int free_slots_in_queue;
   while (getline( file, reqLine )) {
     sem_wait(&disk_queue);
     sem_wait(&coutMut);
     cout << "requester " << *inputFile << " track " << reqLine << endl;
     sem_post(&coutMut);
+    sem_getvalue(&disk_queue,&free_slots_in_queue);
+    if (free_slots_in_queue==0)
+      sem_post(&serv_block);
   }
   file.close();
   pthread_exit(NULL);
 }
 
 void *service(void *sth) {
-  int free_slots_in_queue;
   while (true) {
-    sem_getvalue(&disk_queue,&free_slots_in_queue);
-    if (free_slots_in_queue<max_disk_queue) {
-      sem_post(&disk_queue);
-      sem_wait(&coutMut);
-      cout << "service requester " << "SOME_REQUESTER" << " track " << "SOME_TRACK" << endl;
-      sem_post(&coutMut);
-    }
+    sem_wait(&serv_block);
+    sem_wait(&coutMut);
+    sem_post(&disk_queue);
+    cout << "service requester " << "SOME_REQUESTER" << " track " << "SOME_TRACK" << endl;
+    sem_post(&coutMut);
   }
   pthread_exit(NULL);
 }
 
 int main( int argc, char * argv[] ) {
 
-  if (argc<3) return 1; 
+  if (argc<3) return 1;
 
   max_disk_queue = atoi(argv[1]);
   pthread_t threads[argc-1];
 
   sem_init(&coutMut, 0, 1);
   sem_init(&disk_queue,0,max_disk_queue);
+  sem_init(&serv_block,0,0);
 
   pthread_create(&threads[0], NULL, service, NULL);
 
