@@ -62,8 +62,8 @@ void *service(void *sth) {
       requesterID = requestsQueue[track];
       requestsQueue[track] = 0;
       // sem_post(&reqr[id]);
-      sem_post(&disk_queue);
       sem_wait(&coutMut);
+      sem_post(&disk_queue);
       cout << "service requester " << requesterID << " track " << track << endl;
       sem_post(&coutMut);
     }
