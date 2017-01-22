@@ -40,7 +40,7 @@ void *requester(void *arg) {
   sem_wait(&reqMut);
   active--;
   sem_getvalue(&disk_queue,&free_slots_in_queue);
-  if (max_disk_queue - active == free_slots_in_queue || active == 0) sem_post(&serv_block);
+  /*if (max_disk_queue - active == free_slots_in_queue || active == 0)*/ sem_post(&serv_block);
   sem_post(&reqMut);
   file.close();
   delete (ReqrInfo*)arg;
@@ -49,27 +49,25 @@ void *requester(void *arg) {
 
 void *service(void *sth) {
   int track = 0, requesterID;
-  bool up = true, alive = true;
-  while (alive) {
-    if (active!=0) sem_wait(&serv_block);
-    for (int j=0;requestsQueue[track]==0 && alive;j++) {
+  bool up = true;
+  while (active>0) {
+    sem_wait(&serv_block);
+    for(int j=0;requestsQueue[track]==0 && j<2000;j++) {
       if (track == 0) up = true;
       else if (track == 999) up = false;
       if (up) track++;
       else track--;
-      if (j==2000) alive = false;
     }
-    if (alive) {
-      requesterID = requestsQueue[track];
+    requesterID = requestsQueue[track];
+    if (requesterID>0) {
       requestsQueue[track] = 0;
-      sem_post(&reqr[requesterID - 1]);
       sem_wait(&coutMut);
+      sem_post(&reqr[requesterID - 1]);
       sem_post(&disk_queue);
       cout << "service requester " << requesterID << " track " << track << endl;
       sem_post(&coutMut);
     }
   }
-  cout<<"THE END"<<endl;
   pthread_exit(NULL);
 }
 
