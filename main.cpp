@@ -46,22 +46,26 @@ void *requester(void *arg) {
 }
 
 void *service(void *sth) {
-  int i = 0;
-  bool up = true;
-  while (true) {
+  int track = 0, requesterID;
+  bool up = true, alive = true;
+  while (alive) {
     if (active!=0) sem_wait(&serv_block);
-    sem_wait(&coutMut);
-    while (requestsQueue[i]==0) {
-      if (i == 0) up = true;
-      else if (i == 999) up = false;
-      if (up) i++;
-      else i--;
+    for (int j=0;requestsQueue[track]==0 && alive;j++) {
+      if (track == 0) up = true;
+      else if (track == 999) up = false;
+      if (up) track++;
+      else track--;
+      if (j==2000) alive = false;
     }
-    // sem_post(&req[id]);
-    sem_post(&disk_queue);
-    cout << "service requester " << requestsQueue[i] << " track " << i << endl;
-    sem_post(&coutMut);
-    requestsQueue[i]=0;
+    if (alive) {
+      requesterID = requestsQueue[track];
+      requestsQueue[track] = 0;
+      // sem_post(&req[id]);
+      sem_post(&disk_queue);
+      sem_wait(&coutMut);
+      cout << "service requester " << requesterID << " track " << track << endl;
+      sem_post(&coutMut);
+    }
   }
   pthread_exit(NULL);
 }
