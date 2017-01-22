@@ -9,7 +9,7 @@
 using namespace std;
 
 int max_disk_queue, active, requestsQueue[1000];
-sem_t coutMut, disk_queue, serv_block, reqMut;
+sem_t coutMut, disk_queue, serv_block, reqMut, *reqr;
 
 typedef struct {
   int id;
@@ -23,7 +23,7 @@ void *requester(void *arg) {
   string reqLine;
   int free_slots_in_queue;
   while (getline( file, reqLine )) {
-    // sem_wait(&reqr[id]);
+    sem_wait(&reqr[ ri->id -1 ]);
     sem_wait(&reqMut);
     sem_wait(&disk_queue);
     requestsQueue[atoi(reqLine.c_str())] = ri->id;
@@ -36,10 +36,11 @@ void *requester(void *arg) {
     }
     sem_post(&reqMut);
   }
-  //sem_wait(&reqr[id]);
+  sem_wait(&reqr[ ri-> id - 1]);
   sem_wait(&reqMut);
   active--;
-  if (active == 0) sem_post(&serv_block);
+  sem_getvalue(&disk_queue,&free_slots_in_queue);
+  if (max_disk_queue - active == free_slots_in_queue || active == 0) sem_post(&serv_block);
   sem_post(&reqMut);
   file.close();
   delete (ReqrInfo*)arg;
@@ -61,13 +62,14 @@ void *service(void *sth) {
     if (alive) {
       requesterID = requestsQueue[track];
       requestsQueue[track] = 0;
-      // sem_post(&reqr[id]);
+      sem_post(&reqr[requesterID - 1]);
       sem_wait(&coutMut);
       sem_post(&disk_queue);
       cout << "service requester " << requesterID << " track " << track << endl;
       sem_post(&coutMut);
     }
   }
+  cout<<"THE END"<<endl;
   pthread_exit(NULL);
 }
 
@@ -78,12 +80,14 @@ int main( int argc, char * argv[] ) {
   max_disk_queue = atoi(argv[1]);
   active = argc-2;
   pthread_t threads[argc-1];
+  reqr = new sem_t[active];
+
   sem_init(&coutMut, 0, 1);
   sem_init(&reqMut, 0, 1);
   sem_init(&serv_block,0,0);
   sem_init(&disk_queue,0,max_disk_queue);
   for (int i=0;i<active;i++) {
-    // sem_init(&reqr[i],0,1);
+     sem_init(&(reqr[i]),0,1);
   }
 
   pthread_create(&threads[0], NULL, service, NULL);
