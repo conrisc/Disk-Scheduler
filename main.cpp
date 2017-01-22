@@ -12,10 +12,15 @@ int max_disk_queue, active;
 sem_t coutMut, disk_queue, serv_block, reqMut;
 list<int> requests;
 
-void *requester(void *fileName) {
-  std::string* inputFile = reinterpret_cast<std::string*>(fileName);
-  std::ifstream file;
-  file.open( (*inputFile).c_str() );
+typedef struct {
+  int id;
+  string *fileName;
+} ReqInfo;
+
+void *requester(void *arg) {
+  ReqInfo* ri = (ReqInfo*)arg;
+  ifstream file;
+  file.open( (*(ri->fileName)).c_str() );
   string reqLine;
   int free_slots_in_queue;
   while (getline( file, reqLine )) {
@@ -23,7 +28,7 @@ void *requester(void *fileName) {
     sem_wait(&reqMut);
     sem_wait(&disk_queue);
     sem_wait(&coutMut);
-    cout << "requester " << *inputFile << " track " << reqLine << endl;
+    cout << "requester " << ri->id << " track " << reqLine << endl;
     sem_post(&coutMut);
     sem_getvalue(&disk_queue,&free_slots_in_queue);
     if (free_slots_in_queue == 0 || max_disk_queue - active == free_slots_in_queue) {
@@ -31,9 +36,12 @@ void *requester(void *fileName) {
     }
     sem_post(&reqMut);
   }
+  sem_wait(&reqMut);
   active--;
   if (active==0) sem_post(&serv_block);
+  sem_post(&reqMut);
   file.close();
+  delete (ReqInfo*)arg;
   pthread_exit(NULL);
 }
 
@@ -67,9 +75,13 @@ int main( int argc, char * argv[] ) {
 
   pthread_create(&threads[0], NULL, service, NULL);
 
+
   for (long i = 1; i < argc-1; i++) {
-    string *parm = new string(argv[i+1]);
-    pthread_create(&threads[i], NULL, requester, (void *) parm);
+    ReqInfo *ri = new ReqInfo;
+    ri -> id = i;
+    ri -> fileName = new string(argv[i+1]);
+    cout<<ri -> id<<endl;
+    pthread_create(&threads[i], NULL, requester, (void *) ri);
   }
 
   for (int i = 0; i < argc-1; i++)
