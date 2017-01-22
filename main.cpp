@@ -68,7 +68,6 @@ void *service(void *sth) {
       sem_post(&coutMut);
     }
   }
-  cout<<"THE END"<<endl;
   pthread_exit(NULL);
 }
 
