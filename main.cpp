@@ -8,7 +8,7 @@
 
 using namespace std;
 
-int max_disk_queue, active, requestsQueue[1000];
+int max_disk_queue, active, requestsQueue[1000], requestsSent;
 sem_t coutMut, disk_queue, serv_block, reqMut, *reqr;
 
 typedef struct {
@@ -21,17 +21,16 @@ void *requester(void *arg) {
   ifstream file;
   file.open( (*(ri->fileName)).c_str() );
   string reqLine;
-  int free_slots_in_queue;
   while (getline( file, reqLine )) {
     sem_wait(&reqr[ ri->id -1 ]);
-    sem_wait(&reqMut);
     sem_wait(&disk_queue);
+    sem_wait(&reqMut);
     requestsQueue[atoi(reqLine.c_str())] = ri->id;
+    requestsSent++;
     sem_wait(&coutMut);
     cout << "requester " << ri->id << " track " << reqLine << endl;
     sem_post(&coutMut);
-    sem_getvalue(&disk_queue,&free_slots_in_queue);
-    if (free_slots_in_queue == 0 || max_disk_queue - active == free_slots_in_queue) {
+    if (requestsSent == max_disk_queue || requestsSent == active) {
       sem_post(&serv_block);
     }
     sem_post(&reqMut);
@@ -39,8 +38,7 @@ void *requester(void *arg) {
   sem_wait(&reqr[ ri-> id - 1]);
   sem_wait(&reqMut);
   active--;
-  sem_getvalue(&disk_queue,&free_slots_in_queue);
-  /*if (max_disk_queue - active == free_slots_in_queue || active == 0)*/ sem_post(&serv_block);
+  if (requestsSent == max_disk_queue || requestsSent == active) sem_post(&serv_block);
   sem_post(&reqMut);
   file.close();
   delete (ReqrInfo*)arg;
@@ -60,12 +58,15 @@ void *service(void *sth) {
     }
     requesterID = requestsQueue[track];
     if (requesterID>0) {
+      sem_wait(&reqMut);
       requestsQueue[track] = 0;
+      requestsSent--;
       sem_wait(&coutMut);
       sem_post(&reqr[requesterID - 1]);
       sem_post(&disk_queue);
       cout << "service requester " << requesterID << " track " << track << endl;
       sem_post(&coutMut);
+      sem_post(&reqMut);
     }
   }
   pthread_exit(NULL);
@@ -75,6 +76,7 @@ int main( int argc, char * argv[] ) {
 
   if (argc<3) return 1;
 
+  requestsSent = 0;
   max_disk_queue = atoi(argv[1]);
   active = argc-2;
   pthread_t threads[argc-1];
