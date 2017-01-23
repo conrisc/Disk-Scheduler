@@ -50,6 +50,7 @@ void *service(void *sth) {
   bool up = true;
   while (active>0) {
     sem_wait(&serv_block);
+    while (requestsSent != max_disk_queue && requestsSent!=active) {}
     for(int j=0;requestsQueue[track]==0 && j<2000;j++) {
       if (track == 0) up = true;
       else if (track == 999) up = false;
