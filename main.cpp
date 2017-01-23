@@ -1,3 +1,6 @@
+// Konrad Cielecki, nr indeksu: 273278
+// Pracownia z Systemów operacyjnych nr 2
+
 #include <iostream>
 #include <pthread.h>
 #include <semaphore.h>
