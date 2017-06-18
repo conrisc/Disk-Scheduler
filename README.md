@@ -1,8 +1,5 @@
-# Systemy Operacyjne - Pracownia 2
-
-## Treść zadania
-
-###Disk scheduler 
+# Disk Scheduler
+ 
 *source: https://people.cs.umass.edu/~mcorner/courses/691J/project1.text*
 
 A concurrent program to issue and service disk requests.
